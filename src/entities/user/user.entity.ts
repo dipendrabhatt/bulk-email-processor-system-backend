@@ -5,7 +5,7 @@ import { Base } from "../base.entity";
 export class User extends Base {
 
     @Column()
-    firstNames: string
+    firstName: string
 
     @Column()
     middleName !: string

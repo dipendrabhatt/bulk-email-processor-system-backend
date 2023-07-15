@@ -9,7 +9,7 @@ const appDataSource = new DataSource({
     username: env.DATABASE_USERNAME,
     password: env.DATABASE_PASSWORD,
     database: env.DATABASE_NAME,
-    // synchronize: true ,
+    synchronize: false,
     logging: true,
     // dropSchema: true,
     entities: ["./src/entities/**/*entity.ts"],
