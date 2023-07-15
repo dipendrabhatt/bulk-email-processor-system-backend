@@ -1,10 +1,15 @@
-import dotenv from "dotenv";
-import express from "express";
-import path from "path";
-const app = express();
+import app from "./config/app";
+import dataSource from "./config/database.config";
+import env from "./config/env";
 
-dotenv.config({ path: path.join(__dirname, "../.env") });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server is running on port ${process.env.PORT}`);
-});
+dataSource
+    .initialize()
+    .then((_) => {
+        app.listen(env.PORT, () => {
+            console.log(`Server is running on port ${env.PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    });
