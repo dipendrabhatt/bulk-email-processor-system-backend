@@ -1,14 +1,12 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import userController from "../../controller/user/user.controller";
+import { UserDTO } from "../../dtos/user/user.dto";
+import RequestValidator from "../../middlewares/request.validator";
+import { catchAsync } from "../../utils/catchAsync";
 
 const router = Router();
 
 
-router.post('/register', (req: Request, res: Response) => {
-    res.json({
-        success: true,
-        message: 'hello there'
-    })
+router.post('/', RequestValidator.validate(UserDTO), catchAsync(userController.create));
 
-})
-
-export default Router()
+export default router;
