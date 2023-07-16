@@ -5,7 +5,6 @@ import excelUploadService from "../../services/excelUpload/excelUpload.service";
 
 export const post = async (req: Request, res: Response) => {
 
-
     try {
         const data = await excelUploadService.create(req.file as UploadedFile, req.body.sheet, req);
         res.status(
