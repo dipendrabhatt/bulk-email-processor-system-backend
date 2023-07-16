@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 import { Request } from 'express';
 import appDataSource from '../../config/database.config';
 import { EmailLog } from '../../entities/emailLog/emailLog.entity';
+import { User } from '../../entities/user/user.entity';
 import sendMailService from '../../utils/sendMail.service';
 
 export enum SendType {
@@ -19,14 +20,12 @@ export class MailSenderService {
     constructor(
         private emailLog: Logs[] = [],
         private emailLogRepository = appDataSource.getRepository(EmailLog),
+        private userRepository = appDataSource.getRepository(User),
     ) {
     }
 
 
     public async sendMail(rows: any[], req: Request) {
-
-
-
         const queue = await amqp.connect('amqp://localhost:5672');
 
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -89,7 +88,7 @@ export class MailSenderService {
             console.error('Failed to consume emails from the queue:', error);
         }
 
-        await this.saveEmailLogs(); // Save email logs to the database
+        await this.saveEmailLogs(req); // Save email logs to the database
 
         return {
             message: 'Emails sent successfully',
@@ -97,13 +96,25 @@ export class MailSenderService {
         };
     }
 
-    private async saveEmailLogs() {
+    private async saveEmailLogs(req: Request) {
 
         for (const log of this.emailLog) {
             const emailLog = new EmailLog();
             emailLog.email = log.email;
             emailLog.sentTime = log.sentTime || null;
             emailLog.type = log.type;
+
+            const user = await this.userRepository.findOne({
+                where: {
+                    id: req.user.id
+                }
+            });
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            emailLog.user = user;
             await this.emailLogRepository.save(emailLog);
         }
 

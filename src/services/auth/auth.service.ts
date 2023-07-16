@@ -12,27 +12,33 @@ class AuthService {
 
     }
 
-    async create(data: User) {
+    async signUp(data: User) {
         const user = new User();
         user.firstName = data.firstName;
         user.lastName = data.lastName;
         user.middleName = data.middleName;
+
+
+        //check if email exists
+        const emailExists = await this.userRepository.findOne({
+            where: {
+                email: data.email
+            }
+        });
+        if (emailExists) {
+            throw new Error("Email already exists");
+        }
         user.email = data.email;
+
+        //hash password
         const hashPassword = await this.bcryptService.hash(data.password)
         user.password = hashPassword;
         user.isVerified = data.isVerified;
 
         const result = await this.userRepository.save(user);
-        const token = tokenService.generateAccessToken(user);
-
-        //create url for email verification
         //send email verification link
-
+        const token = tokenService.generateAccessToken(user);
         const emailVerificationUrl = `http://localhost:4000/api/auth/verify-email/${token}`;
-        console.log(emailVerificationUrl);
-
-        //senf the email verification link to the user email using mailtrap
-
         await sendMailService.sendMail({
             from: "Email Processor",
             to: user.email,
@@ -42,6 +48,28 @@ class AuthService {
         });
         return result;
 
+    }
+
+    async login(email: string, password: string) {
+        const user = await this.userRepository.findOne({
+            where: {
+                email: email
+            }
+        });
+        if (!user) {
+            throw new Error("User not found");
+        }
+        const isPasswordValid = await this.bcryptService.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            throw new Error("Invalid password");
+        }
+
+        const token = tokenService.generateAccessToken(user);
+        return {
+            user,
+            token
+        }
     }
 
 
@@ -62,41 +90,6 @@ class AuthService {
         return await this.userRepository.save(userToUpdate);
     }
 
-    async findAll() {
-        return await this.userRepository.find();
-    }
-
-    async findOne(id: string): Promise<User> {
-        const user = await this.userRepository.findOne({
-            where: {
-                id
-            }
-        });
-        if (!user) {
-            throw new Error("User not found");
-        }
-        return user;
-    }
-
-    async update(id: string, user: User): Promise<User> {
-        const userToUpdate = await this.userRepository.findOne({
-            where: {
-                id
-            }
-        });
-        if (!userToUpdate) {
-            throw new Error("User not found");
-        }
-
-        return await this.userRepository.save({
-            ...userToUpdate,
-            ...user
-        });
-    }
-
-    async remove(id: string) {
-        return await this.userRepository.delete(id);
-    }
 
 }
 

@@ -1,6 +1,8 @@
 
 import jwt from 'jsonwebtoken'
+import appDataSource from '../config/database.config'
 import env from '../config/env'
+import { User } from '../entities/user/user.entity'
 export interface IJwtOptions {
     secret: string
     expiresIn: string
@@ -14,6 +16,10 @@ export interface IJwtPayload {
 
 
 class WebTokenService {
+    constructor(
+        private readonly userRepository = appDataSource.getRepository(User),
+    ) {
+    }
 
     sign(user: IJwtPayload, options: IJwtOptions) {
         return jwt.sign(
@@ -44,6 +50,19 @@ class WebTokenService {
         } catch (error) {
             return null
         }
+    }
+
+    async userExists(email: string) {
+        const user = await this.userRepository.findOne({
+            where: {
+                email
+            }
+        });
+        console.log("🚀 ~ file: token.service.ts:61 ~ WebTokenService ~ userExists ~ user:", user)
+        if (!user) {
+            return false;
+        }
+        return true;
     }
 
 }

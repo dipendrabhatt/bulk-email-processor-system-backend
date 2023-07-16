@@ -1,5 +1,6 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, ManyToOne } from "typeorm";
 import { Base } from "../../entities/base.entity";
+import { User } from "../../entities/user/user.entity";
 
 
 @Entity('email_log')
@@ -14,9 +15,10 @@ export class EmailLog extends Base {
     })
     sentTime: Date | null;
 
-    @Column({
-
-    })
+    @Column({})
     type: string;
+
+    @ManyToOne(() => User, user => user.emailLogs)
+    user: User;
 
 }

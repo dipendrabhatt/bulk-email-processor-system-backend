@@ -1,4 +1,5 @@
-import { Column, Entity } from "typeorm";
+import { Column, Entity, OneToMany } from "typeorm";
+import { EmailLog } from "../../entities/emailLog/emailLog.entity";
 import { Base } from "../base.entity";
 
 @Entity("user")
@@ -15,7 +16,9 @@ export class User extends Base {
     @Column()
     lastName: string
 
-    @Column()
+    @Column({
+        unique: true
+    })
     email: string
 
     @Column()
@@ -25,5 +28,8 @@ export class User extends Base {
         default: false
     })
     isVerified: boolean
+
+    @OneToMany(() => EmailLog, emailLog => emailLog.user)
+    emailLogs: EmailLog[]
 
 }
