@@ -21,74 +21,44 @@ export class MailSenderService {
         private emailLog: Logs[] = [],
         private emailLogRepository = appDataSource.getRepository(EmailLog),
         private userRepository = appDataSource.getRepository(User),
-    ) {
-    }
-
+    ) { }
 
     public async sendMail(rows: any[], req: Request) {
         const queue = await amqp.connect('amqp://localhost:5672');
 
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-
-        for (const row of rows) {
-            const email = row[0];
-            console.log('Email:', email);
-
-            // Validate email pattern
-            if (!emailPattern.test(email)) {
-                throw new Error(`Invalid email pattern for ${email}`);
-            }
-
-            // Add the email to the queue
-            try {
-                const channel = await queue.createChannel();
-                await channel.assertQueue('email-queue', {
-                    durable: true,
-                });
-                await channel.sendToQueue('email-queue', Buffer.from(email));
-                console.log('Email added to the queue:', email);
-                channel.close();
-                this.emailLog.push({ email, sentTime: new Date(), type: SendType.SUCCESS });
-
-            } catch (error: any) {
-                console.error('Failed to add email to the queue:', email, error);
-                this.emailLog.push({ email, sentTime: null, type: SendType.FAILED });
-            }
-        }
+        const channel = await queue.createChannel();
+        await channel.assertQueue('email-queue', {
+            durable: true,
+        });
 
         try {
-            const channel = await queue.createChannel();
-            await channel.assertQueue('email-queue', {
-                durable: true,
-            });
-
-            const sendEmail = async (email: string) => {
+            for (const row of rows) {
+                const email = row[0];
+                console.log('Email:', email);
                 try {
-                    await sendMailService.sendMail({
-                        from: 'Email Processor',
-                        to: email,
-                        subject: 'Email Verification',
-                        html: '<h5>Happy Birthday</h5>',
-                    });
-                    console.log('Email sent:', email);
+                    channel.sendToQueue('email-queue', Buffer.from(email));
+                    console.log('Email added to the queue:', email);
                     this.emailLog.push({ email, sentTime: new Date(), type: SendType.SUCCESS });
                 } catch (error: any) {
-                    console.error('Failed to send email:', email, error);
+                    console.error('Failed to add email to the queue:', email, error);
                     this.emailLog.push({ email, sentTime: null, type: SendType.FAILED });
                 }
-            };
-
+            }
             await channel.consume('email-queue', async (msg: any) => {
                 const email = msg?.content.toString();
                 console.log('Email received from queue:', email);
-                await sendEmail(email);
+                await this.sendEmail(email);
                 channel.ack(msg);
             });
         } catch (error) {
             console.error('Failed to consume emails from the queue:', error);
         }
 
-        await this.saveEmailLogs(req); // Save email logs to the database
+        // Send emails and save logs
+        await this.sendAndSaveEmailLogs(req);
+
+        // Clear the queue
+        await channel.purgeQueue('email-queue');
 
         return {
             message: 'Emails sent successfully',
@@ -96,28 +66,52 @@ export class MailSenderService {
         };
     }
 
-    private async saveEmailLogs(req: Request) {
+    private async sendAndSaveEmailLogs(req: Request) {
+        const uniqueEmails = new Set<string>(); // Set to store unique email addresses
 
         for (const log of this.emailLog) {
-            const emailLog = new EmailLog();
-            emailLog.email = log.email;
-            emailLog.sentTime = log.sentTime || null;
-            emailLog.type = log.type;
+            if (!uniqueEmails.has(log.email)) { // Check if the email is already saved
+                uniqueEmails.add(log.email); // Add the email to the set to mark it as saved
 
-            const user = await this.userRepository.findOne({
-                where: {
-                    id: req.user.id
+                const emailLog = new EmailLog();
+                emailLog.email = log.email;
+                emailLog.sentTime = log.sentTime || null;
+                emailLog.type = log.type;
+
+                const user = await this.userRepository.findOne({
+                    where: {
+                        id: req.user.id,
+                    },
+                });
+
+                if (!user) {
+                    throw new Error('User not found');
                 }
-            });
 
-            if (!user) {
-                throw new Error('User not found');
+                emailLog.user = user;
+                await this.emailLogRepository.save(emailLog);
             }
-
-            emailLog.user = user;
-            await this.emailLogRepository.save(emailLog);
         }
 
+        // Clear the email log array
+        this.emailLog = [];
+    }
+
+
+    private async sendEmail(email: string) {
+        try {
+            await sendMailService.sendMail({
+                from: 'Email Processor',
+                to: email,
+                subject: 'Email Verification',
+                html: '<h5>Happy Birthday</h5>',
+            });
+            console.log('Email sent:', email);
+            this.emailLog.push({ email, sentTime: new Date(), type: SendType.SUCCESS });
+        } catch (error: any) {
+            console.error('Failed to send email:', email, error);
+            this.emailLog.push({ email, sentTime: null, type: SendType.FAILED });
+        }
     }
 }
 

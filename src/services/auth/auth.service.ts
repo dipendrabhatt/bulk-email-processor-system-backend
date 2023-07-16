@@ -46,7 +46,10 @@ class AuthService {
             html: `<h1>Click on the link below to verify your email</h1>
             <a href="${emailVerificationUrl}">Verify Email</a>`
         });
-        return result;
+        return {
+            user: result,
+            token
+        }
 
     }
 
@@ -66,6 +69,7 @@ class AuthService {
         }
 
         const token = tokenService.generateAccessToken(user);
+
         return {
             user,
             token
