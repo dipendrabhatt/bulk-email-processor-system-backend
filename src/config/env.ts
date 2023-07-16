@@ -15,8 +15,15 @@ class env {
 
     // *Other Configurations
     static DEBUG_MODE = process.env.DEBUG_MODE;
-    static JWT_SECRET = process.env.JWT_SECRET!;
+    static TOKEN_SECRET = process.env.TOKEN_SECRET!;
     static TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN!;
+
+    // *Mail Configurations
+    static MAIL_TRAP_HOST = process.env.MAIL_TRAP_HOST;
+    static MAIL_TRAP_PORT = +process.env.MAIL_TRAP_PORT!;
+    static MAIL_TRAP_USERNAME = process.env.MAIL_TRAP_USERNAME;
+    static MAIL_TRAP_PASSWORD = process.env.MAIL_TRAP_PASSWORD;
+
 
     // *Server Information
     static BASE_URL = process.env.BASE_URL!;

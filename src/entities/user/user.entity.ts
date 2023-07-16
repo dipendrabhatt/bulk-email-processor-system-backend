@@ -7,7 +7,9 @@ export class User extends Base {
     @Column()
     firstName: string
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     middleName !: string
 
     @Column()

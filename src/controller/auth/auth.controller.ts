@@ -1,12 +1,12 @@
-import UserService from "../../services/user/user.service";
+import AuthService from "../../services/auth/auth.service";
 
 
 
-class UserController {
+class AuthController {
 
     async create(req: any, res: any) {
         try {
-            const user = await UserService.create(req.body);
+            const user = await AuthService.create(req.body);
             res.json({
                 success: true,
                 message: 'User created successfully',
@@ -21,9 +21,26 @@ class UserController {
         }
     }
 
+    async verifyEmail(req: any, res: any) {
+        try {
+            const user = await AuthService.verifyEmail(req.params.token);
+            res.json({
+                success: true,
+                message: 'User verified successfully',
+                data: user
+            })
+        } catch (error: any) {
+            res.json({
+                success: false,
+                message: error.message,
+                data: []
+            })
+        }
+    }
+
     async findAll(req: any, res: any) {
         try {
-            const users = await UserService.findAll();
+            const users = await AuthService.findAll();
             res.json({
                 success: true,
                 message: 'Users retrieved successfully',
@@ -41,7 +58,7 @@ class UserController {
 
     async findOne(req: any, res: any) {
         try {
-            const user = await UserService.findOne(req.params.id);
+            const user = await AuthService.findOne(req.params.id);
             res.json({
                 success: true,
                 message: 'User retrieved successfully',
@@ -59,7 +76,7 @@ class UserController {
     async update(req: any, res: any) {
 
         try {
-            const user = await UserService.update(req.params.id, req.body);
+            const user = await AuthService.update(req.params.id, req.body);
             res.json({
                 success: true,
                 message: 'User updated successfully',
@@ -78,7 +95,7 @@ class UserController {
 
     async remove(req: any, res: any) {
         try {
-            const user = await UserService.remove(req.params.id);
+            const user = await AuthService.remove(req.params.id);
             res.json({
                 success: true,
                 message: 'User deleted successfully',
@@ -95,4 +112,4 @@ class UserController {
 
 }
 
-export default new UserController();
+export default new AuthController();
