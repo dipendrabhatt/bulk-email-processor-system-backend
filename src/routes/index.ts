@@ -1,5 +1,6 @@
 import { Router } from "express";
-import userRoutes from "./user/user.route";
+import authRoutes from "./auth/auth.route";
+import excelUploadRoutes from "./excelUpload/excelUpload.route";
 
 const router = Router();
 
@@ -10,8 +11,12 @@ export type Route = {
 
 const routes: Route[] = [
     {
-        path: "/user",
-        route: userRoutes
+        path: "/auth",
+        route: authRoutes
+    },
+    {
+        path: "/excel-upload",
+        route: excelUploadRoutes
     }
 ]
 
