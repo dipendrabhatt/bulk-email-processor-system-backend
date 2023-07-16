@@ -3,7 +3,7 @@ import { Base } from "../../entities/base.entity";
 import { User } from "../../entities/user/user.entity";
 
 
-@Entity('email_log')
+@Entity()
 export class EmailLog extends Base {
 
     @Column()

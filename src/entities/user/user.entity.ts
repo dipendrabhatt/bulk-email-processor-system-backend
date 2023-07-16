@@ -2,7 +2,7 @@ import { Column, Entity, OneToMany } from "typeorm";
 import { EmailLog } from "../../entities/emailLog/emailLog.entity";
 import { Base } from "../base.entity";
 
-@Entity("user")
+@Entity()
 export class User extends Base {
 
     @Column()
