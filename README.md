@@ -8,6 +8,7 @@ This is backend framework of Bulk Email Processing System.
 git clone --branch develop https://github.com/dipendrabhatt/bulk-email-processor-system-backend
 copy .env example file. and setup all config.
 setup rabbitmq and  update env file.
+setup mailtrap and update env username password
 yarn 
 yarn template:seed
 yarn start:dev
