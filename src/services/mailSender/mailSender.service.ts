@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
 import { Request } from 'express';
 import appDataSource from '../../config/database.config';
+import webSocketServer from "../../config/webSocket";
 import { EmailLog } from '../../entities/emailLog/emailLog.entity';
 import { EmailTemplate } from '../../entities/emailTemplate/emailTemplate.entity';
 import { User } from '../../entities/user/user.entity';
@@ -107,8 +108,8 @@ export class MailSenderService {
             }
         }
 
-        // Clear the email log array
-        this.emailLog = [];
+        webSocketServer.get().to(req.user.id).emit('email-logs', this.emailLog);
+
     }
 
 

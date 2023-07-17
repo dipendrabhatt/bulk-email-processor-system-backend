@@ -92,7 +92,11 @@ class AuthService {
             throw new Error("User not found");
         }
         userToUpdate.isVerified = true;
-        return await this.userRepository.save(userToUpdate);
+        const result = await this.userRepository.save(userToUpdate);
+        return {
+            user: result,
+            token
+        }
     }
 
 
