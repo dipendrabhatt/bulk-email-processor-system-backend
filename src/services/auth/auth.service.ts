@@ -1,4 +1,5 @@
 import appDataSource from "../../config/database.config";
+import env from "../../config/env";
 import { User } from "../../entities/user/user.entity";
 import BcryptService from "../../utils/bcrypt.service";
 import sendMailService from "../../utils/sendMail.service";
@@ -38,7 +39,7 @@ class AuthService {
         const result = await this.userRepository.save(user);
         //send email verification link
         const token = tokenService.generateAccessToken(user);
-        const emailVerificationUrl = `http://localhost:4000/api/auth/verify-email/${token}`;
+        const emailVerificationUrl = `${env.BASE_URL}/verify-email?token=${token}`;
         await sendMailService.sendMail({
             from: "Email Processor",
             to: user.email,

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import authRoutes from "./auth/auth.route";
+import emailTemplateRoutes from "./emailTemplate/emailTemplate.route";
 import excelUploadRoutes from "./excelUpload/excelUpload.route";
 import userRoutes from "./user/user.route";
 
@@ -22,6 +23,10 @@ const routes: Route[] = [
     {
         path: "/email-logs",
         route: userRoutes
+    },
+    {
+        path: "/email-templates",
+        route: emailTemplateRoutes
     }
 ]
 

@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 import { Request } from 'express';
 import appDataSource from '../../config/database.config';
 import { EmailLog } from '../../entities/emailLog/emailLog.entity';
+import { EmailTemplate } from '../../entities/emailTemplate/emailTemplate.entity';
 import { User } from '../../entities/user/user.entity';
 import sendMailService from '../../utils/sendMail.service';
 
@@ -25,6 +26,19 @@ export class MailSenderService {
 
     public async sendMail(rows: any[], req: Request) {
         const queue = await amqp.connect('amqp://localhost:5672');
+        const templateId = req.query.templateId as string;
+        if (!templateId) {
+            throw new Error('Template is required');
+        }
+
+        const template = await appDataSource.getRepository(EmailTemplate).findOne({
+            where: {
+                id: templateId,
+            },
+        });
+        if (!template) {
+            throw new Error('Template not found');
+        }
 
         const channel = await queue.createChannel();
         await channel.assertQueue('email-queue', {
@@ -47,7 +61,7 @@ export class MailSenderService {
             await channel.consume('email-queue', async (msg: any) => {
                 const email = msg?.content.toString();
                 console.log('Email received from queue:', email);
-                await this.sendEmail(email);
+                await this.sendEmail(email, template.template);
                 channel.ack(msg);
             });
         } catch (error) {
@@ -98,15 +112,15 @@ export class MailSenderService {
     }
 
 
-    private async sendEmail(email: string) {
+    private async sendEmail(email: string, template: string) {
+
         try {
             await sendMailService.sendMail({
                 from: 'Email Processor',
                 to: email,
-                subject: 'Email Verification',
-                html: '<h5>Happy Birthday</h5>',
+                subject: 'Mail Send',
+                html: template,
             });
-            console.log('Email sent:', email);
             this.emailLog.push({ email, sentTime: new Date(), type: SendType.SUCCESS });
         } catch (error: any) {
             console.error('Failed to send email:', email, error);

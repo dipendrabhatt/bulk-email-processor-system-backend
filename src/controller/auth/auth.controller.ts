@@ -9,8 +9,8 @@ class AuthController {
             const user = await AuthService.signUp(req.body);
             res.json({
                 success: true,
-                message: 'User created successfully',
-                data: user
+                message: 'Verification email sent successfully. Please check your email',
+                data: []
             })
         } catch (error: any) {
             res.json({

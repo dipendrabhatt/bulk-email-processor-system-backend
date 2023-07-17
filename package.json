@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev": "ts-node-dev src/server.ts"
+    "start:dev": "ts-node-dev src/server.ts",
+    "template:seed": "ts-node-dev ./src/seed/emailTemplate.seed.ts"
   },
   "keywords": [],
   "author": "",
