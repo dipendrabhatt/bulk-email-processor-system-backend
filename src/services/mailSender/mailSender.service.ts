@@ -52,16 +52,13 @@ export class MailSenderService {
                 console.log('Email:', email);
                 try {
                     channel.sendToQueue('email-queue', Buffer.from(email));
-                    console.log('Email added to the queue:', email);
                     this.emailLog.push({ email, sentTime: new Date(), type: SendType.SUCCESS });
                 } catch (error: any) {
-                    console.error('Failed to add email to the queue:', email, error);
                     this.emailLog.push({ email, sentTime: null, type: SendType.FAILED });
                 }
             }
             await channel.consume('email-queue', async (msg: any) => {
                 const email = msg?.content.toString();
-                console.log('Email received from queue:', email);
                 await this.sendEmail(email, template.template);
                 channel.ack(msg);
             });
@@ -76,39 +73,37 @@ export class MailSenderService {
         await channel.purgeQueue('email-queue');
 
         return {
-            message: 'Emails sent successfully',
-            data: this.emailLog,
+            message: 'Emails are being processed . Please wait for some time.',
         };
     }
 
     private async sendAndSaveEmailLogs(req: Request) {
         const uniqueEmails = new Set<string>(); // Set to store unique email addresses
-
+        let sentEmailLog: EmailLog[] = [];
         for (const log of this.emailLog) {
             if (!uniqueEmails.has(log.email)) { // Check if the email is already saved
                 uniqueEmails.add(log.email); // Add the email to the set to mark it as saved
-
                 const emailLog = new EmailLog();
                 emailLog.email = log.email;
                 emailLog.sentTime = log.sentTime || null;
                 emailLog.type = log.type;
-
                 const user = await this.userRepository.findOne({
                     where: {
                         id: req.user.id,
                     },
                 });
-
                 if (!user) {
                     throw new Error('User not found');
                 }
-
                 emailLog.user = user;
-                await this.emailLogRepository.save(emailLog);
+                const emailLogs = await this.emailLogRepository.save(emailLog);
+                sentEmailLog.push(emailLogs);
             }
         }
 
-        webSocketServer.get().to(req.user.id).emit('email-logs', this.emailLog);
+        webSocketServer.get().to(req.user.id).emit('email-logs', sentEmailLog);
+
+        this.emailLog = [];
 
     }
 

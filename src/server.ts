@@ -5,9 +5,11 @@ import env from "./config/env";
 import webSocket from "./config/webSocket";
 
 
+
 dataSource
     .initialize()
     .then(async () => {
+
         const httpServer = http.createServer(app);
         webSocket.initialize(httpServer);
         httpServer.listen(env.PORT);
