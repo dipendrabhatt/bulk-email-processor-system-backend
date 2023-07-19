@@ -44,8 +44,11 @@ class AuthService {
             from: "Email Processor",
             to: user.email,
             subject: "Email Verification",
-            html: `<h1>Click on the link below to verify your email</h1>
-            <a href="${emailVerificationUrl}">Verify Email</a>`
+            html: ` 
+            <h1>Hi ${user.firstName} ${user.lastName},</h1>
+            <p>Thanks for registering on Email Processor. Please verify your email address by clicking the button below.</p>
+            <a href="${emailVerificationUrl}">Verify Email</a>
+            `
         });
         return {
             user: result,
