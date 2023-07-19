@@ -14,6 +14,10 @@ const appDataSource = new DataSource({
     // dropSchema: true,
     entities: ["./src/entities/**/*entity.ts"],
     subscribers: [],
+    migrations: ["./src/migrations/**/*ts"],
+    migrationsTableName: "migrations",
+
+
 });
 
 export default appDataSource;
